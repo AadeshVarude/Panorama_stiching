@@ -64,8 +64,8 @@ def harris_corners(img,tf = 1,display = False ):
     M = np.zeros((2, 2))
     k = 0.04
     R = np.zeros(img.shape)
-    for i in range(0, x):
-        for j in range(0, y):
+    for i in range(0, y):
+        for j in range(0, x):
             M[0, 0] = wind_Ixx[i, j]
             M[0, 1] = wind_Ixy[i, j]
             M[1, 0] = wind_Iyx[i, j]
@@ -78,9 +78,9 @@ def harris_corners(img,tf = 1,display = False ):
     # Threshold calculation
     corner_Rsum = 0
     count = 0
-    finalimg = np.zeros((x, y))
-    for i in range(0, x):
-        for j in range(0, y):
+    finalimg = np.zeros((y, x))
+    for i in range(0, y):
+        for j in range(0, x):
             if R[i, j] > 0:
                 corner_Rsum += R[i, j]
                 count += 1
@@ -89,7 +89,7 @@ def harris_corners(img,tf = 1,display = False ):
     threshold = tf * corner_Rsum / count
 
     # Non-maximal suppression
-    finalimg2 = np.zeros((x, y))
+    finalimg2 = np.zeros((y, x))
     s = 10
     maxindices = []
     for i in range(0, y, s):
@@ -110,6 +110,6 @@ def harris_corners(img,tf = 1,display = False ):
 
 # Calling Harris Algorithm
 
-img = cv2.imread('lenna.png',0)
+img = cv2.imread('images/dataset1/0.bmp',0)
 corners = harris_corners(img, 1, True)
 print(corners)
