@@ -15,7 +15,7 @@ def convol(img,kernel):
     return opimg
 
 # Image input and preprocessing
-img = cv2.imread('chessboard.png',0)
+img = cv2.imread('photo-building.jpeg',0)
 img = cv2.GaussianBlur(img,(5,5),0)
 y, x = img.shape
 img = cv2.normalize(img,img,alpha =  0,beta = 255, norm_type = cv2.NORM_MINMAX)
@@ -71,12 +71,36 @@ for i in range(0, x):
         R[i, j] = determinant - (k*(trace**2))
 
 
-# Thresholding according to Harris response value
+# Simple Thresholding according to Harris response value
 finalimg = np.zeros((x,y))
 for i in range(0, x):
     for j in range(0, y):
-        if R[i,j] > 0: # Corner
+        if R[i,j] > 0:
             finalimg[i,j] = 255
 cv2.imwrite('final.png', finalimg)
 
+# Non-maximal suppression
+finalimg2 = np.zeros((x,y))
+s = 40
+maxindices =[]
+for i in range(0, y, s):
+    for j in range(0, x, s):
+        maxindex = np.unravel_index(R[i:i + s, j:j + s].argmax(),(s,s))
+        try:
+            if R[i+maxindex[0],j+maxindex[1]] > 0:
+                maxindices.append([i+maxindex[0],j+maxindex[1]])
+                finalimg2[i+maxindex[0],j+maxindex[1]] = 255
+        except:
+            pass
 
+img = cv2.imread('photo-building.jpeg')
+
+for index in maxindices:
+    # print('hello')
+    img[index[0],index[1]] = np.array([0,255,0])
+
+
+# img[maxindices,:] = np.array([0,255,0])
+print(img.shape)
+cv2.imwrite('final2.png', finalimg2)
+cv2.imwrite('corners.png', img)
