@@ -215,5 +215,6 @@ while i < len(listdir):
 
 canvas = required_img(canvas)
 cv2.imshow('panorama',canvas)
+cv2.imwrite('panorama.jpg',canvas)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
