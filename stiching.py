@@ -70,8 +70,8 @@ def harris_corners(img,tf = 1,display = False ):
     M = np.zeros((2, 2))
     k = 0.04
     R = np.zeros(img.shape)
-    for i in range(0, x):
-        for j in range(0, y):
+    for i in range(0, y):
+        for j in range(0, x):
             M[0, 0] = wind_Ixx[i, j]
             M[0, 1] = wind_Ixy[i, j]
             M[1, 0] = wind_Iyx[i, j]
@@ -84,9 +84,9 @@ def harris_corners(img,tf = 1,display = False ):
     # Threshold calculation
     corner_Rsum = 0
     count = 0
-    finalimg = np.zeros((x, y))
-    for i in range(0, x):
-        for j in range(0, y):
+    finalimg = np.zeros((y, x))
+    for i in range(0, y):
+        for j in range(0, x):
             if R[i, j] > 0:
                 corner_Rsum += R[i, j]
                 count += 1
@@ -95,7 +95,7 @@ def harris_corners(img,tf = 1,display = False ):
     threshold = tf * corner_Rsum / count
 
     # Non-maximal suppression
-    finalimg2 = np.zeros((x, y))
+    finalimg2 = np.zeros((y, x))
     s = 10
     maxindices = []
     for i in range(0, y, s):
@@ -122,10 +122,10 @@ def required_img(img):
     cnt = cnt.reshape(-1,2)
     x_min = np.min(cnt[:,0],axis = 0) 
     y_min = np.min(cnt[:,1],axis = 0)
-    x = np.max(cnt[:,0],axis = 0)
-    y = np.max(cnt[:,1],axis = 0)
-    img2 = np.zeros((y,x,3),np.uint8)
-    img2 = img[y_min:y,x_min:x]
+    x_max = np.max(cnt[:,0],axis = 0)
+    y_max = np.max(cnt[:,1],axis = 0)
+    img2 = np.zeros((y_max,x_max,3),np.uint8)
+    img2 = img[y_min:y_max,x_min:x_max]
     # cv2.waitKey(0)
     return img2
 
@@ -148,16 +148,15 @@ listdir = sorted(listdir)
 img1 = cv2.imread(listdir[0])
 #img1 = cv2.resize(img1, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
 gray1 = cv2.cvtColor(img1,cv2.COLOR_BGR2GRAY)
-corner = harris_corners(gray1,1.2,False)
-print(corner)
+
 canvas = np.zeros((img1.shape[0]*4,img1.shape[1]*5,img1.shape[2]),np.uint8)
 
 canvas[150:150+img1.shape[0],100:100+ img1.shape[1]] = img1
 img3 = canvas.copy()
-i = 1000
+i = 1
 
 exten_list = ['.jpg','jpeg','.bmp','.png']
-features_extractor = "SIFT"
+features_extractor = "sift"
 print(listdir)
 # read only when extension is of type ['.jpg','jpeg',".bmp",'.png']
 while i < len(listdir):
@@ -175,7 +174,16 @@ while i < len(listdir):
             kp1,desc1 = sift.detectAndCompute(gray1,None)
             kp2,desc2 = sift.detectAndCompute(gray2,None)
         else:
-            pass
+            kp1 = []
+            kp2 = []
+            corner1 = harris_corners(gray1,1.2,False)
+            corner2 = harris_corners(gray2,1.2,False)
+            for j in range(len(corner1)):
+                    kp1.append(cv2.KeyPoint(math.floor(corner1[j][1]),math.floor(corner1[j][0]),10))
+            for j in range(len(corner2)):
+                    kp2.append(cv2.KeyPoint(math.floor(corner2[j][1]),math.floor(corner2[j][0]),10))
+            kp1,desc1 = sift.compute(gray1,kp1)
+            kp2,desc2 = sift.compute(gray2,kp2)
 
         bf = cv2.BFMatcher(crossCheck=False)
         matches = bf.knnMatch(desc1,desc2,k=2)
